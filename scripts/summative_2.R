@@ -48,9 +48,9 @@ probiotic <- janitor::clean_names(probiotic)
 probiotic <- rename(probiotic,
                    "abundance"="ruminococcus_gnavus_abund") #rename long variable name
 
-probiotic%>%
-  duplicated()%>%
-  sum() #check for duplicated rows
+#probiotic%>%
+ # duplicated()%>%
+  #sum() #check for duplicated rows
 
 #_____ changing variable classes----
 
@@ -59,19 +59,19 @@ probiotic$gender <- as.factor(probiotic$gender)
 probiotic$group <- as.factor(probiotic$group)
 
 #____ mean----
-probiotic %>% 
-  summarise(across(.cols = where(is.numeric), 
-                   .fns = ~ mean(., na.rm=TRUE)))# finds mean of numeric variables
+#probiotic %>% 
+  #summarise(across(.cols = where(is.numeric), 
+ #                  .fns = ~ mean(., na.rm=TRUE)))# finds mean of numeric variables
 
 #____checking for typos ----
-probiotic %>%
-  distinct(time)#checking for mis-entered data in each column in the data set
+#probiotic %>%
+ # distinct(time)#checking for mis-entered data in each column in the data set
 
-probiotic %>%
-  distinct(gender)
+#probiotic %>%
+ # distinct(gender)
 
-probiotic %>%
-  distinct(group)
+#probiotic %>%
+ # distinct(group)
 
 #unique (ubu$sex)
 #____ changing typos----
@@ -91,12 +91,33 @@ probiotic <- probiotic %>%
   )
 
 #__ checking for na---
-probiotic %>% 
-  is.na() %>% 
-  sum()
+#probiotic %>% 
+#  is.na() %>% 
+#  sum()
 
 #___min max---
-probiotic %>%
-  summarise(min=min(abundance),
-            max=max(abundance))
+#probiotic %>%
+#  summarise(min=min(abundance),
+#            max=max(abundance))
+
+#___separating the time column--- 
+
+pb1 <- probiotic %>%#pipe df
+  select(time, subject, gender, group, abundance)%>%#remove sample column
+  group_by(time = "1")%>%#grouping the df by before the treatment
+  rename("abundance_before"="abundance")#creating a new variable
+
+pb2 <- probiotic%>% #pipe df
+  select (time, subject, abundance)%>%#removing repeated columns as we don't want the same data twice in the merged df
+  filter(time == "2")%>% #grouping the df by after the abundance
+  rename("abundance_after"= "abundance",#creating a new variable
+         "after" ="time")#renaming time so the data frames can merge
+
+df_list <- list(pb1, pb2)#create an object of new data frames
+
+pb <- df_list %>% reduce(full_join, by='subject')%>% #merging data frames with subject as the merge point
+  select(subject, gender, group, time, abundance_before, abundance_after) # ordering and selecting relevant columns, because abundance is grouped by time either 'time' or 'after' must be left in
+
+
+
 

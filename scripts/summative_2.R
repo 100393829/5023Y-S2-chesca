@@ -9,7 +9,7 @@ library(tidyr)
 library(stringr)
 library(dplyr)
 
-#talking_to_git--- 
+#___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")
 #gitcreds::gitcreds_set()
 
@@ -19,13 +19,13 @@ library(dplyr)
 #parasite <- read_csv ("data/parasite_exp.csv")
 probiotic <- read_csv ("data/probiotic.csv")
 
-#___cricket---
+#___cricket----
 #head(cricket)
 #glimpse(cricket)
 #summary(cricket)
 #GGally::ggpairs(cricket)
 
-#___butterfly---
+#___butterfly----
 #head(butterfly)
 #glimpse(butterfly)
 #summary(butterfly)
@@ -37,7 +37,7 @@ probiotic <- read_csv ("data/probiotic.csv")
 #summary(parasite)
 #GGally::ggpairs(parasite)
 
-#____probiotic---
+#____probiotic----
 head(probiotic)
 glimpse(probiotic)
 summary(probiotic)
@@ -73,7 +73,6 @@ probiotic$group <- as.factor(probiotic$group)
 #probiotic %>%
  # distinct(group)
 
-#unique (ubu$sex)
 #____ changing typos----
 
 probiotic <- probiotic %>%
@@ -90,26 +89,26 @@ probiotic <- probiotic %>%
   )
   )
 
-#__ checking for na---
+#__ checking for na----
 #probiotic %>% 
 #  is.na() %>% 
 #  sum()
 
-#___min max---
+#___min max----
 #probiotic %>%
 #  summarise(min=min(abundance),
 #            max=max(abundance))
 
-#___separating the time column--- 
+#___separating the abundance column by time---- 
 
 pb1 <- probiotic %>%#pipe df
   select(time, subject, gender, group, abundance)%>%#remove sample column
-  group_by(time = "1")%>%#grouping the df by before the treatment
+  group_by(time = "1")%>%#grouping the df by abundance before the treatment
   rename("abundance_before"="abundance")#creating a new variable
 
 pb2 <- probiotic%>% #pipe df
   select (time, subject, abundance)%>%#removing repeated columns as we don't want the same data twice in the merged df
-  filter(time == "2")%>% #grouping the df by after the abundance
+  filter(time == "2")%>% #grouping the df by abundance after treatment
   rename("abundance_after"= "abundance",#creating a new variable
          "after" ="time")#renaming time so the data frames can merge
 

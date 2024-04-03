@@ -10,7 +10,7 @@ library(stringr)
 library(dplyr)
 
 #___talking_to_git----
-#usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")
+#usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
 
 #___choosing data to analyse----

@@ -117,6 +117,15 @@ df_list <- list(pb1, pb2)#create an object of new data frames
 pb <- df_list %>% reduce(full_join, by='subject')%>% #merging data frames with subject as the merge point
   select(subject, gender, group, time, abundance_before, abundance_after) # ordering and selecting relevant columns, because abundance is grouped by time either 'time' or 'after' must be left in
 
+#___monovariate explorative figures----
 
+abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
+  geom_boxplot(aes(fill = time, colour = black), # note fill is "inside" colour and colour is "edges" 
+               alpha = 0.2, # fainter boxes so the points "pop"
+               width = 0.5, # change width of boxplot
+               outlier.shape=NA)+
+  geom_jitter(aes(colour = time),
+              width=0.2)
 
-
+ggsave("figures/abundance_box.jpeg", # Give R a path to save to and a file name
+       plot = abundance_box)

@@ -119,13 +119,36 @@ pb <- df_list %>% reduce(full_join, by='subject')%>% #merging data frames with s
 
 #___monovariate explorative figures----
 
-abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
-  geom_boxplot(aes(fill = time, colour = black), # note fill is "inside" colour and colour is "edges" 
-               alpha = 0.2, # fainter boxes so the points "pop"
-               width = 0.5, # change width of boxplot
-               outlier.shape=NA)+
-  geom_jitter(aes(colour = time),
-              width=0.2)
+#abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
+ # geom_boxplot(aes(fill = time), # note fill is "inside" colour and colour is "edges" 
+  #             alpha = 0.2, # fainter boxes so the points "pop"
+   #            width = 0.5, # change width of boxplot
+    #           outlier.shape=NA)+
+#  geom_jitter(aes(colour = time),
+ #             width=0.2)
 
-ggsave("figures/abundance_box.jpeg", # Give R a path to save to and a file name
-       plot = abundance_box)
+#ggsave("figures/abundance_box.jpeg", # Give R a path to save to and a file name
+#       plot = abundance_box)
+
+#treatment_box<- ggplot(data = pb, aes(x = group, y = abundance_after)) +
+ # geom_boxplot(aes(fill = group), # note fill is "inside" colour and colour is "edges" 
+  #             alpha = 0.2, # fainter boxes so the points "pop"
+   #            width = 0.5, # change width of boxplot
+    #           outlier.shape=NA)+
+#  geom_jitter(aes(colour = group),
+ #             width=0.2)
+
+#ggsave("figures/treatment_box.jpeg", 
+ #      plot = treatment_box)
+
+#gender_box<- ggplot(data = pb, aes(x = gender, y = abundance_after)) +
+ # geom_boxplot(aes(fill = gender), # note fill is "inside" colour and colour is "edges" 
+  #             alpha = 0.2, # fainter boxes so the points "pop"
+   #            width = 0.5, # change width of boxplot
+    #           outlier.shape=NA)+
+  #geom_jitter(aes(colour = gender),
+   #           width=0.2)
+
+#ggsave("figures/gender_box.jpeg", 
+ #      plot = gender_box)
+

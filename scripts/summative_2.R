@@ -10,7 +10,7 @@ library(stringr)
 library(dplyr)
 library(emmeans)
 library(performance)
-
+library(skimr)
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
@@ -125,7 +125,26 @@ summarise(abundance_before= abundance[time==1],
           abundance_after=abundance[time==2])%>%
   mutate(difference = abundance_after - abundance_before)
 
+#____homoscedascity----
+difference %>%
+  group_by(gender) %>%
+  summarise(n = n())
+
+difference %>%                                    # Count NA by group
+  group_by(gender) %>%
+  dplyr::summarize(na_sex = sum(is.na(gender)),
+                   na_year = sum(is.na(year)),
+                   na_forewing_length = sum(is.na(forewing_length)))
+
+butterfly_clean %>%
+  group_by(gender) %>% 
+  summarize(across(everything(), ~sum(is.na(.))))#distribution of missing values 
+
+skimr::skim(difference)
 #___monovariate explorative figures----
+
+GGally::ggpairs(difference,
+                aes(colour = gender))#clean ggally
 
 #abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
  # geom_boxplot(aes(fill = time), # note fill is "inside" colour and colour is "edges" 
@@ -208,6 +227,9 @@ summarise(abundance_before= abundance[time==1],
 #ggsave("figures/abundance_after_histogram.jpeg", 
 #       plot = histogram_3)
 
+h4<-hist(difference$abundance_before)
+h5<-hist(difference$abundance_after)
+
 #___trial_linear_models----
 
 lsmodel0 <- lm(formula = difference ~ group, data = difference)
@@ -216,10 +238,16 @@ anova(lsmodel0)
 
 pf(0.7411, 1, 20, lower.tail=FALSE)
 
-#darwin pairs grouping 
+#look at darwin pairs grouping 
 
 lsmodel1 <- lm(abundance ~ group, data = probiotic)
 summary(lsmodel1)
 anova(lsmodel1)
 
 pf(0.543, 1, 42, lower.tail=FALSE)
+
+model2 <- lm(forewing_length ~ jun_mean + sex + rain_jun + gender:group,
+            data = difference)
+summary(model)
+
+

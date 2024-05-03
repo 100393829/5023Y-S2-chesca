@@ -8,6 +8,8 @@ library(ggplot2)
 library(tidyr)
 library(stringr)
 library(dplyr)
+library(emmeans)
+library(performance)
 
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
@@ -117,6 +119,12 @@ df_list <- list(pb1, pb2)#create an object of new data frames
 pb <- df_list %>% reduce(full_join, by='subject')%>% #merging data frames with subject as the merge point
   select(subject, gender, group, time, abundance_before, abundance_after) # ordering and selecting relevant columns, because abundance is grouped by time either 'time' or 'after' must be left in
 
+difference <- probiotic%>%
+  group_by(gender,subject,group)%>%
+summarise(abundance_before= abundance[time==1],
+          abundance_after=abundance[time==2])%>%
+  mutate(difference = abundance_after - abundance_before)
+
 #___monovariate explorative figures----
 
 #abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
@@ -152,3 +160,66 @@ pb <- df_list %>% reduce(full_join, by='subject')%>% #merging data frames with s
 #ggsave("figures/gender_box.jpeg", 
  #      plot = gender_box)
 
+#bar <- pb %>%     
+ # group_by(gender,group) %>% 
+  #summarise(n=n()) %>% 
+  #ggplot(aes(x=group, y=n)) + 
+ # geom_col(aes(fill=gender), 
+       #    width=0.8,
+       #    position=position_dodge(width=0.9), 
+       #    alpha=0.6)+
+ # scale_fill_manual(values=c("darkorange1", "azure4"))+
+ # theme_classic()
+
+#ggsave("figures/abundance_bar.jpeg", 
+  # plot = bar)
+
+#histogram <- probiotic %>% 
+ # ggplot(aes(x= abundance))+
+ # geom_histogram(bins=20, 
+              #   aes(y=..density..,
+               #      fill=group), 
+                # position = "identity",
+                # colour="black")
+
+#ggsave("figures/abundance_histogram.jpeg", 
+       #plot = histogram)
+
+#histogram_2 <- difference %>% 
+ #ggplot(aes(x= abundance_before))+
+ #geom_histogram(bins=20, 
+#  aes(y=..density..,
+ #     fill=group), 
+ #position = "identity",
+ #colour="black")
+
+
+#ggsave("figures/abundance_before_histogram.jpeg", 
+  #plot = histogram_2)
+
+#histogram_3 <- difference %>% 
+ # ggplot(aes(x= abundance_after))+
+ # geom_histogram(bins=20, 
+#                 aes(y=..density..,
+#                     fill=group), 
+#                 position = "identity",
+#                 colour="black")
+
+#ggsave("figures/abundance_after_histogram.jpeg", 
+#       plot = histogram_3)
+
+#___trial_linear_models----
+
+lsmodel0 <- lm(formula = difference ~ group, data = difference)
+summary(lsmodel0)
+anova(lsmodel0)
+
+pf(0.7411, 1, 20, lower.tail=FALSE)
+
+#darwin pairs grouping 
+
+lsmodel1 <- lm(abundance ~ group, data = probiotic)
+summary(lsmodel1)
+anova(lsmodel1)
+
+pf(0.543, 1, 42, lower.tail=FALSE)

@@ -247,7 +247,7 @@ anova(lsmodel1)
 pf(0.543, 1, 42, lower.tail=FALSE)
 
 model2 <- lm(forewing_length ~ jun_mean + sex + rain_jun + gender:group,
-            data = difference)
+            data = difference)#change here
 summary(model)
 
 

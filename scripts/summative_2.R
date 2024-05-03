@@ -128,19 +128,8 @@ summarise(abundance_before= abundance[time==1],
 #____homoscedascity----
 difference %>%
   group_by(gender) %>%
-  summarise(n = n())
+  summarise(n = n())#Female bias
 
-difference %>%                                    # Count NA by group
-  group_by(gender) %>%
-  dplyr::summarize(na_sex = sum(is.na(gender)),
-                   na_year = sum(is.na(year)),
-                   na_forewing_length = sum(is.na(forewing_length)))
-
-butterfly_clean %>%
-  group_by(gender) %>% 
-  summarize(across(everything(), ~sum(is.na(.))))#distribution of missing values 
-
-skimr::skim(difference)
 #___monovariate explorative figures----
 
 GGally::ggpairs(difference,

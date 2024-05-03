@@ -11,6 +11,9 @@ library(dplyr)
 library(emmeans)
 library(performance)
 library(skimr)
+library(lmtest)
+library(car)
+library(see)
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
@@ -132,9 +135,6 @@ difference %>%
 
 #___monovariate explorative figures----
 
-GGally::ggpairs(difference,
-                aes(colour = gender))#clean ggally
-
 #abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
  # geom_boxplot(aes(fill = time), # note fill is "inside" colour and colour is "edges" 
   #             alpha = 0.2, # fainter boxes so the points "pop"
@@ -235,8 +235,56 @@ anova(lsmodel1)
 
 pf(0.543, 1, 42, lower.tail=FALSE)
 
-model2 <- lm(forewing_length ~ jun_mean + sex + rain_jun + gender:group,
+model2 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
             data = difference)#change here
-summary(model)
+summary(model2)
 
+par(mfrow = c(2, 2))#check how well the model fits
+plot(model2)#observe the plots
 
+difference2 <- difference %>% 
+  mutate(ab_before_center = abundance_before - mean(abundance_before, na.rm = T),
+         ab_after_center = abundance_after - mean(abundance_after, na.rm = T))#check the raw data
+
+no_20<-difference2[-20,]
+
+model3 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
+             data = no_20)#change here
+summary(model3)
+plot(model3)
+
+#Breusch Pagan test for normality
+lmtest::bptest(model2)
+lmtest::bptest(model3)
+# qqplot with confidence intervals
+car::qqPlot(model2)
+car::qqPlot(model3) # adds a confidence interval check
+# shapiro wilk test for homoscedasticity
+shapiro.test(residuals(model2))
+shapiro.test(residuals(model3))
+
+no_20[14,]
+
+model4 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
+             data = no_20[-14,])#change here
+
+plot(model4)
+
+lmtest::bptest(model4)
+# qqplot with confidence intervals
+car::qqPlot(model4)
+# shapiro wilk test for homoscedasticity
+shapiro.test(residuals(model4))
+
+model5 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
+             data = no_20[-5,])
+
+lmtest::bptest(model5)
+plot(model5)
+
+performance::check_model(model3, detrend = F)
+
+ymodel6 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
+             data = no_20[-13,])
+lmtest::bptest(model6)
+plot(model6)

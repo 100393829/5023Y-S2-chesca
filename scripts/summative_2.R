@@ -1,19 +1,20 @@
 #___packages----
-library(usethis)
-library(gitcreds)
-library(tidyverse)
+library(usethis)#used to talk to git
+library(gitcreds)#used to talk to git
+library(tidyverse)#load pacakge for data cleaning, manipulating and presenting
 library(GGally)
-library(janitor)
-library(ggplot2)
-library(tidyr)
-library(stringr)
-library(dplyr)
+library(janitor)#load a package for data cleaning
+library(ggplot2)#Used to make plots pretty
+library(tidyr)#package for data cleaning
+library(stringr)#simplifies string manipulation 
+library(dplyr)#load mutate filter and other dplyr verbs, manipulation
 library(emmeans)
 library(performance)
 library(skimr)
 library(lmtest)
-library(car)
-library(see)
+library(car)#for qq plot for model visualisation
+library(see)#for qq plot for model visualisation
+
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
@@ -22,7 +23,13 @@ library(see)
 #cricket <- read_csv ("data/cricket_song.csv")
 #butterfly<- read_csv ("data/inbreeding_butterfly.csv")
 #parasite <- read_csv ("data/parasite_exp.csv")
-probiotic <- read_csv ("data/probiotic.csv")
+probiotic <- read_csv ("data/probiotic.csv")#R reads data from data folder
+
+#____probiotic----
+head(probiotic)#View the top of the data set
+colnames(probiotic)#view all of the column names
+glimpse(probiotic)#view some of the data set
+summary(probiotic)#caluclates mean of numerical data and gives the class and sample number of other data
 
 #___cricket----
 #head(cricket)
@@ -42,13 +49,8 @@ probiotic <- read_csv ("data/probiotic.csv")
 #summary(parasite)
 #GGally::ggpairs(parasite)
 
-#____probiotic----
-head(probiotic)
-glimpse(probiotic)
-summary(probiotic)
-
 #___ data cleaning----
-probiotic <- janitor::clean_names(probiotic)
+probiotic <- janitor::clean_names(probiotic)#sanke cases the name
 
 probiotic <- rename(probiotic,
                    "abundance"="ruminococcus_gnavus_abund") #rename long variable name
@@ -59,7 +61,7 @@ probiotic <- rename(probiotic,
 
 #_____ changing variable classes----
 
-probiotic$time <- as.factor(probiotic$time)
+probiotic$time <- as.factor(probiotic$time)#changing the class of variables: time, gender and group to factor
 probiotic$gender <- as.factor(probiotic$gender)
 probiotic$group <- as.factor(probiotic$group)
 
@@ -85,7 +87,7 @@ probiotic <- probiotic %>%
     gender %in% c("F") ~ "Female",
     TRUE ~ gender
   )
-  )
+  )#Changing the data to be more readable
 
 probiotic <- probiotic %>%
   mutate(gender = case_when(
@@ -102,7 +104,7 @@ probiotic <- probiotic %>%
 #___min max----
 #probiotic %>%
 #  summarise(min=min(abundance),
-#            max=max(abundance))
+#            max=max(abundance))# checking the minimum and maximum abundance numbers are concievable
 
 #___separating the abundance column by time---- 
 
@@ -126,42 +128,39 @@ difference <- probiotic%>%
   group_by(gender,subject,group)%>%
 summarise(abundance_before= abundance[time==1],
           abundance_after=abundance[time==2])%>%
-  mutate(difference = abundance_after - abundance_before)
+  mutate(difference = abundance_after - abundance_before)#adding a difference column to the dataset
 
 #____homoscedascity----
 difference %>%
   group_by(gender) %>%
-  summarise(n = n())#Female bias
+  summarise(n = n())#checking for sampling error, fffFemale bias
 
 #___monovariate explorative figures----
 
-#abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +
- # geom_boxplot(aes(fill = time), # note fill is "inside" colour and colour is "edges" 
+#abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +#pipes df and sets x and y column
+ # geom_boxplot(aes(fill = time), # chooses inside colours by before and after categories 
   #             alpha = 0.2, # fainter boxes so the points "pop"
-   #            width = 0.5, # change width of boxplot
-    #           outlier.shape=NA)+
-#  geom_jitter(aes(colour = time),
- #             width=0.2)
+   #            width = 0.5,)+ # change width of boxplot
+#  geom_jitter(aes(colour = time), # adding the points overtop
+ #             width=0.2) #setting the width of the points
 
 #ggsave("figures/abundance_box.jpeg", # Give R a path to save to and a file name
 #       plot = abundance_box)
 
-#treatment_box<- ggplot(data = pb, aes(x = group, y = abundance_after)) +
- # geom_boxplot(aes(fill = group), # note fill is "inside" colour and colour is "edges" 
+#treatment_box<- ggplot(data = pb, aes(x = group, y = abundance_after)) +#pipes df and sets x and y column
+ # geom_boxplot(aes(fill = group), #  # chooses inside colours by placebo and LGG categories 
   #             alpha = 0.2, # fainter boxes so the points "pop"
-   #            width = 0.5, # change width of boxplot
-    #           outlier.shape=NA)+
+   #            width = 0.5)+ # change width of boxplot
 #  geom_jitter(aes(colour = group),
  #             width=0.2)
 
 #ggsave("figures/treatment_box.jpeg", 
  #      plot = treatment_box)
 
-#gender_box<- ggplot(data = pb, aes(x = gender, y = abundance_after)) +
- # geom_boxplot(aes(fill = gender), # note fill is "inside" colour and colour is "edges" 
+#gender_box<- ggplot(data = pb, aes(x = gender, y = abundance_after)) + #pipes df and sets x and y column
+ # geom_boxplot(aes(fill = gender), #  # chooses inside colours by male and female categories 
   #             alpha = 0.2, # fainter boxes so the points "pop"
-   #            width = 0.5, # change width of boxplot
-    #           outlier.shape=NA)+
+   #            width = 0.5)+ # change width of boxplot
   #geom_jitter(aes(colour = gender),
    #           width=0.2)
 
@@ -171,11 +170,11 @@ difference %>%
 #bar <- pb %>%     
  # group_by(gender,group) %>% 
   #summarise(n=n()) %>% 
-  #ggplot(aes(x=group, y=n)) + 
- # geom_col(aes(fill=gender), 
-       #    width=0.8,
+  #ggplot(aes(x=group, y=n)) + #pipes df, establishes count and the plot, and sets x and y column
+ # geom_col(aes(fill=gender),  # chooses inside colours by male and female categories 
+       #    width=0.8, # change width of bar
        #    position=position_dodge(width=0.9), 
-       #    alpha=0.6)+
+       #    alpha=0.6)+ # sets transparency
  # scale_fill_manual(values=c("darkorange1", "azure4"))+
  # theme_classic()
 
@@ -186,7 +185,7 @@ difference %>%
  # ggplot(aes(x= abundance))+
  # geom_histogram(bins=20, 
               #   aes(y=..density..,
-               #      fill=group), 
+               #      fill=group),  # chooses inside colours by LGG and placebo categories 
                 # position = "identity",
                 # colour="black")
 
@@ -197,7 +196,7 @@ difference %>%
  #ggplot(aes(x= abundance_before))+
  #geom_histogram(bins=20, 
 #  aes(y=..density..,
- #     fill=group), 
+ #     fill=group),  # chooses inside colours by LGG and placebo categories 
  #position = "identity",
  #colour="black")
 
@@ -209,15 +208,12 @@ difference %>%
  # ggplot(aes(x= abundance_after))+
  # geom_histogram(bins=20, 
 #                 aes(y=..density..,
-#                     fill=group), 
+#                     fill=group),  # chooses inside colours by LGG and placebo categories 
 #                 position = "identity",
 #                 colour="black")
 
 #ggsave("figures/abundance_after_histogram.jpeg", 
 #       plot = histogram_3)
-
-h4<-hist(difference$abundance_before)
-h5<-hist(difference$abundance_after)
 
 #___trial_linear_models----
 
@@ -265,7 +261,7 @@ shapiro.test(residuals(model3))
 
 no_20[14,]
 
-model4 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
+model4 <- lm(abundance_after ~ abundance_before + gender + group,
              data = no_20[-14,])#change here
 
 plot(model4)
@@ -282,9 +278,14 @@ model5 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
 lmtest::bptest(model5)
 plot(model5)
 
-performance::check_model(model3, detrend = F)
-
 ymodel6 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
              data = no_20[-13,])
 lmtest::bptest(model6)
 plot(model6)
+
+performance::check_model(model3, detrend = F)
+
+model7 <- lm(abundance_after ~ abundance_before + group,
+             data = no_20)#change here
+
+performance::check_model(model4, detrend = F)

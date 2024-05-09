@@ -14,6 +14,7 @@ library(skimr)
 library(lmtest)
 library(car)#for qq plot for model visualisation
 library(see)#for qq plot for model visualisation
+library(scales)
 
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
@@ -29,7 +30,7 @@ probiotic <- read_csv ("data/probiotic.csv")#R reads data from data folder
 head(probiotic)#View the top of the data set
 colnames(probiotic)#view all of the column names
 glimpse(probiotic)#view some of the data set
-summary(probiotic)#caluclates mean of numerical data and gives the class and sample number of other data
+summary(probiotic)#calculates mean of numerical data and gives the class and sample number of other data
 
 #___cricket----
 #head(cricket)
@@ -106,35 +107,63 @@ probiotic <- probiotic %>%
 #  summarise(min=min(abundance),
 #            max=max(abundance))# checking the minimum and maximum abundance numbers are concievable
 
-#___separating the abundance column by time---- 
-
-pb1 <- probiotic %>%#pipe df
-  select(time, subject, gender, group, abundance)%>%#remove sample column
-  group_by(time = "1")%>%#grouping the df by abundance before the treatment
-  rename("abundance_before"="abundance")#creating a new variable
-
-pb2 <- probiotic%>% #pipe df
-  select (time, subject, abundance)%>%#removing repeated columns as we don't want the same data twice in the merged df
-  filter(time == "2")%>% #grouping the df by abundance after treatment
-  rename("abundance_after"= "abundance",#creating a new variable
-         "after" ="time")#renaming time so the data frames can merge
-
-df_list <- list(pb1, pb2)#create an object of new data frames
-
-pb <- df_list %>% reduce(full_join, by='subject')%>% #merging data frames with subject as the merge point
-  select(subject, gender, group, time, abundance_before, abundance_after) # ordering and selecting relevant columns, because abundance is grouped by time either 'time' or 'after' must be left in
+#___separating_abundance_to_before_and_after_and_adding_a_difference_column---- 
 
 difference <- probiotic%>%
-  group_by(gender,subject,group)%>%
+  group_by(subject, gender, group)%>%#grouping the df by abundance before the treatment
 summarise(abundance_before= abundance[time==1],
           abundance_after=abundance[time==2])%>%
   mutate(difference = abundance_after - abundance_before)#adding a difference column to the dataset
 
-#____homoscedascity----
-difference %>%
-  group_by(gender) %>%
-  summarise(n = n())#checking for sampling error, fffFemale bias
+#_____homoscedascity----
+#difference %>%
+#  group_by(gender) %>%
+#  summarise(n = n())#checking for sampling error, Female bias
 
+#difference %>%
+#  group_by(group) %>%
+#  summarise(n = n())#Placebo group bias
+
+#difference %>%
+#  group_by(gender, group) %>%
+#  summarise(n = n())%>%
+#  mutate(prob_obs = n/sum(n))
+
+#___plotting the sampling error----
+
+group_gender_summary <- difference %>% 
+  group_by(group, gender) %>% 
+  summarise(n=n(),
+            n_distinct=n_distinct(subject)) %>% 
+  ungroup() %>% # needed to remove group calculations
+  mutate(freq=n/sum(n))
+
+proportion <- difference%>% 
+  ggplot(aes(x=group, fill=gender))+
+  geom_bar(position=position_dodge2(preserve="single"))+ 
+  #keeps bars to appropriate widths
+  coord_flip()+
+  #keeps bars to appropriate widths
+  labs(x="Treatment",
+       y = "Number of observations")+
+  geom_text(data=group_gender_summary, # use the data from the summarise object
+            aes(x=group,
+                y= n, # offset text to be slightly to the right of bar
+                group= gender, # need species group to separate text
+                label=scales::percent(freq) # automatically add %
+            ),
+            position=position_dodge2(width=0.8))+ # set width of dodge
+  scale_fill_manual(values=c("cyan",
+                             "darkorange",
+                             "purple"
+  ))+
+  coord_flip()+
+  theme_minimal()+
+  theme(legend.position="bottom") # put legend at the bottom of the graph
+
+ggsave("figures/bias_frequency_plot.jpeg", 
+             plot = proportion)
+       
 #___monovariate explorative figures----
 
 #abundance_box<- ggplot(data = probiotic, aes(x = time, y = abundance)) +#pipes df and sets x and y column
@@ -147,7 +176,7 @@ difference %>%
 #ggsave("figures/abundance_box.jpeg", # Give R a path to save to and a file name
 #       plot = abundance_box)
 
-#treatment_box<- ggplot(data = pb, aes(x = group, y = abundance_after)) +#pipes df and sets x and y column
+#treatment_box<- ggplot(data = difference, aes(x = group, y = abundance_after)) +#pipes df and sets x and y column
  # geom_boxplot(aes(fill = group), #  # chooses inside colours by placebo and LGG categories 
   #             alpha = 0.2, # fainter boxes so the points "pop"
    #            width = 0.5)+ # change width of boxplot
@@ -157,7 +186,7 @@ difference %>%
 #ggsave("figures/treatment_box.jpeg", 
  #      plot = treatment_box)
 
-#gender_box<- ggplot(data = pb, aes(x = gender, y = abundance_after)) + #pipes df and sets x and y column
+#gender_box<- ggplot(data = difference, aes(x = gender, y = abundance_after)) + #pipes df and sets x and y column
  # geom_boxplot(aes(fill = gender), #  # chooses inside colours by male and female categories 
   #             alpha = 0.2, # fainter boxes so the points "pop"
    #            width = 0.5)+ # change width of boxplot
@@ -167,7 +196,7 @@ difference %>%
 #ggsave("figures/gender_box.jpeg", 
  #      plot = gender_box)
 
-#bar <- pb %>%     
+#bar <- difference %>%     
  # group_by(gender,group) %>% 
   #summarise(n=n()) %>% 
   #ggplot(aes(x=group, y=n)) + #pipes df, establishes count and the plot, and sets x and y column
@@ -215,21 +244,61 @@ difference %>%
 #ggsave("figures/abundance_after_histogram.jpeg", 
 #       plot = histogram_3)
 
-#___trial_linear_models----
+#___abundance_group----
 
-lsmodel0 <- lm(formula = difference ~ group, data = difference)
-summary(lsmodel0)
-anova(lsmodel0)
-
-pf(0.7411, 1, 20, lower.tail=FALSE)
-
-#look at darwin pairs grouping 
-
-lsmodel1 <- lm(abundance ~ group, data = probiotic)
+lsmodel1 <- lm(abundance_after ~ group, data = difference)
 summary(lsmodel1)
 anova(lsmodel1)
+plot(lsmodel1)
+
+performance::check_model(lsmodel1, detrend = F)
 
 pf(0.543, 1, 42, lower.tail=FALSE)
+
+group_means <- difference %>% 
+  ggplot(aes(x=group, 
+             y=abundance_after,
+             colour=group))+
+  geom_jitter(alpha=0.5,
+              width=0.1)+
+  stat_summary(fun=mean,
+               size=1.2)+
+  theme_bw()
+
+#____difference_group---
+lsmodel0 <- lm(formula = difference ~ group, data = difference)
+summary(lsmodel0)
+
+lsmodel01 <- lm(formula = difference ~ gender, data = difference)
+summary(lsmodel01)
+
+pb3 <- probiotic %>%#pipe df
+  select(subject, abundance, group)
+
+lsmodel02 <- lm( abundance ~ group + factor(subject), data = pb3) %>% 
+  broom::tidy(., conf.int=T) %>% 
+  slice(1:2)
+
+summary(lsmodel02)
+
+lsmodel03 <- lm(formula = difference ~ group + gender, data = difference)
+summary(lsmodel03)
+performance::check_model(lsmodel03, detrend = F)
+
+lsmodel04 <- lm(formula = difference ~ group + gender, data = difference[-14,])
+summary(lsmodel04)
+performance::check_model(lsmodel04, detrend = F)
+
+#Breusch Pagan test for normality
+lmtest::bptest(lsmodel03)
+lmtest::bptest(lsmodel04)
+# qqplot with confidence intervals
+car::qqPlot(lsmodel03)
+car::qqPlot(lsmodel04) # adds a confidence interval check
+# shapiro wilk test for homoscedasticity
+shapiro.test(residuals(lsmodel03))
+shapiro.test(residuals(lsmodel04))
+#___abundance_before_and_after-----
 
 model2 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
             data = difference)#change here
@@ -238,9 +307,9 @@ summary(model2)
 par(mfrow = c(2, 2))#check how well the model fits
 plot(model2)#observe the plots
 
-difference2 <- difference %>% 
-  mutate(ab_before_center = abundance_before - mean(abundance_before, na.rm = T),
-         ab_after_center = abundance_after - mean(abundance_after, na.rm = T))#check the raw data
+#difference2 <- difference %>% 
+ # mutate(ab_before_center = abundance_before - mean(abundance_before, na.rm = T),
+     #    ab_after_center = abundance_after - mean(abundance_after, na.rm = T))#check the raw data
 
 no_20<-difference2[-20,]
 
@@ -259,7 +328,6 @@ car::qqPlot(model3) # adds a confidence interval check
 shapiro.test(residuals(model2))
 shapiro.test(residuals(model3))
 
-no_20[14,]
 
 model4 <- lm(abundance_after ~ abundance_before + gender + group,
              data = no_20[-14,])#change here

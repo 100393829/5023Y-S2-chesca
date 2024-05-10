@@ -15,40 +15,20 @@ library(lmtest)
 library(car)#for qq plot for model visualisation
 library(see)#for qq plot for model visualisation
 library(scales)
+library(MASS)
 
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
 
-#___choosing data to analyse----
-#cricket <- read_csv ("data/cricket_song.csv")
-#butterfly<- read_csv ("data/inbreeding_butterfly.csv")
-#parasite <- read_csv ("data/parasite_exp.csv")
+#___loading_data----
+
 probiotic <- read_csv ("data/probiotic.csv")#R reads data from data folder
 
-#____probiotic----
 head(probiotic)#View the top of the data set
 colnames(probiotic)#view all of the column names
 glimpse(probiotic)#view some of the data set
 summary(probiotic)#calculates mean of numerical data and gives the class and sample number of other data
-
-#___cricket----
-#head(cricket)
-#glimpse(cricket)
-#summary(cricket)
-#GGally::ggpairs(cricket)
-
-#___butterfly----
-#head(butterfly)
-#glimpse(butterfly)
-#summary(butterfly)
-#GGally::ggpairs(butterfly)
-
-#____parasite----
-#head(parasite)
-#glimpse(parasite)
-#summary(parasite)
-#GGally::ggpairs(parasite)
 
 #___ data cleaning----
 probiotic <- janitor::clean_names(probiotic)#sanke cases the name
@@ -246,114 +226,127 @@ ggsave("figures/bias_frequency_plot.jpeg",
 
 #___abundance_group----
 
-lsmodel1 <- lm(abundance_after ~ group, data = difference)
-summary(lsmodel1)
-anova(lsmodel1)
-plot(lsmodel1)
+#lsmodel1 <- lm(abundance_after ~ group, data = difference)
+#summary(lsmodel1)
+#anova(lsmodel1)
+#plot(lsmodel1)
 
-performance::check_model(lsmodel1, detrend = F)
+#performance::check_model(lsmodel1, detrend = F)
 
-pf(0.543, 1, 42, lower.tail=FALSE)
+#pf(0.543, 1, 42, lower.tail=FALSE)
 
-group_means <- difference %>% 
-  ggplot(aes(x=group, 
-             y=abundance_after,
-             colour=group))+
-  geom_jitter(alpha=0.5,
-              width=0.1)+
-  stat_summary(fun=mean,
-               size=1.2)+
-  theme_bw()
+#group_means <- difference %>% 
+#  ggplot(aes(x=group, 
+ #            y=abundance_after,
+  #           colour=group))+
+  #geom_jitter(alpha=0.5,
+   #           width=0.1)+
+  #stat_summary(fun=mean,
+   #            size=1.2)+
+  #theme_bw()
 
 #____difference_group---
-lsmodel0 <- lm(formula = difference ~ group, data = difference)
-summary(lsmodel0)
+#lsmodel0 <- lm(formula = difference ~ group, data = difference)
+#summary(lsmodel0)
 
-lsmodel01 <- lm(formula = difference ~ gender, data = difference)
-summary(lsmodel01)
+#lsmodel01 <- lm(formula = difference ~ gender, data = difference)
+#summary(lsmodel01)
 
-pb3 <- probiotic %>%#pipe df
-  select(subject, abundance, group)
 
-lsmodel02 <- lm( abundance ~ group + factor(subject), data = pb3) %>% 
-  broom::tidy(., conf.int=T) %>% 
-  slice(1:2)
+#lsmodel03 <- lm(formula = difference ~ group + 
+#                  gender,
+#                data = difference)
+#summary(lsmodel03)
+#performance::check_model(lsmodel03, detrend = F)
 
-summary(lsmodel02)
+lsmodel04 <- lm(formula = difference ~ group + 
+                  gender, 
+                data = difference[-14,])#removing 14 outlier
 
-lsmodel03 <- lm(formula = difference ~ group + gender, data = difference)
-summary(lsmodel03)
-performance::check_model(lsmodel03, detrend = F)
-
-lsmodel04 <- lm(formula = difference ~ group + gender, data = difference[-14,])
 summary(lsmodel04)
+plot(lsmodel04)
 performance::check_model(lsmodel04, detrend = F)
 
+lsmodel05 <- lm(formula = difference ~ group + 
+                  gender + 
+                  group:gender , 
+                data = difference[-14,])#adding interaction
+
+summary(lsmodel05)
+drop1(lsmodel05, test = "F")
+anova(lsmodel05, lsmodel04)#therefore drop the interaction term
+
+#lsmodel06 <- lm(formula = sqrt(difference) ~  group + 
+#                  gender +
+#                  group:gender,
+#                data=difference[-14,])#checking transformations
+#
+#summary(lsmodel06)
+#performance::check_model(lsmodel06, detrend = F)
+#MASS::boxcox(lsmodel06)
+#drop1(lsmodel06, test = "F")
+#anova(lsmodel06, lsmodel04)
+
+#___testing my best model---
+
+drop1(lsmodel04, test = "F")
+
+dropped_group<- lm(formula = difference ~ gender, 
+                    data = difference[-14,])
+summary(dropped_group)
+performance::check_model(dropped_group, detrend = F)
+
 #Breusch Pagan test for normality
-lmtest::bptest(lsmodel03)
 lmtest::bptest(lsmodel04)
 # qqplot with confidence intervals
-car::qqPlot(lsmodel03)
 car::qqPlot(lsmodel04) # adds a confidence interval check
 # shapiro wilk test for homoscedasticity
-shapiro.test(residuals(lsmodel03))
 shapiro.test(residuals(lsmodel04))
-#___abundance_before_and_after-----
 
-model2 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
-            data = difference)#change here
-summary(model2)
+#_____paired_t_test----
 
-par(mfrow = c(2, 2))#check how well the model fits
-plot(model2)#observe the plots
+lsmodel_t_test <- lm(abundance ~ group + factor(subject), data = probiotic)
+summary(lsmodel_t_test)
 
-#difference2 <- difference %>% 
- # mutate(ab_before_center = abundance_before - mean(abundance_before, na.rm = T),
-     #    ab_after_center = abundance_after - mean(abundance_after, na.rm = T))#check the raw data
+lsmodel_t_test%>% 
+  broom::tidy(., conf.int = T)%>%
+  slice(1:2)# just show first two rows
 
-no_20<-difference2[-20,]
+#____model_summary----
+difference2<-difference[-14,]
 
-model3 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
-             data = no_20)#change here
-summary(model3)
-plot(model3)
+difference2 %>%
+    summarise(min=min(difference),
+              max=max(difference))
+  
+model_sum <- emmeans::emmeans(lsmodel04, specs = ~group + gender,
+                              at =list(difference2 = c(-141: 194)))%>%
+  as_tibble()
 
-#Breusch Pagan test for normality
-lmtest::bptest(model2)
-lmtest::bptest(model3)
-# qqplot with confidence intervals
-car::qqPlot(model2)
-car::qqPlot(model3) # adds a confidence interval check
-# shapiro wilk test for homoscedasticity
-shapiro.test(residuals(model2))
-shapiro.test(residuals(model3))
+difference2%>%
+  ggplot(aes(x = abundance_before,
+             y = abundance_after,
+             fill = group))+
+   geom_ribbon(data = model_sum,
+              aes(x = abundance_before,
+                  y = abundance_after,
+                 ymin = lower.CL,
+                   ymax = upper.CL,
+                  fill = group),
+              alpha = .2)+
+  geom_line(data = model_sum,
+           aes(x = jun_mean,
+               y = emmean,
+               colour = sex),
+            show.legend = FALSE)+
+  geom_point(shape = 21,
+           colour = "black",
+             show.legend = FALSE)+
+  scale_colour_manual(values = c("darkorange", "purple"))+
+  scale_fill_manual(values = c("darkorange", "purple"))+
+  labs(x = "Mean June Temperature (°C)",
+       y = "Forewing length (mm)",
+       fill = "Sex")+
+  theme_classic()+
+  theme(legend.position = "top")
 
-
-model4 <- lm(abundance_after ~ abundance_before + gender + group,
-             data = no_20[-14,])#change here
-
-plot(model4)
-
-lmtest::bptest(model4)
-# qqplot with confidence intervals
-car::qqPlot(model4)
-# shapiro wilk test for homoscedasticity
-shapiro.test(residuals(model4))
-
-model5 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
-             data = no_20[-5,])
-
-lmtest::bptest(model5)
-plot(model5)
-
-ymodel6 <- lm(abundance_after ~ abundance_before + gender + group + gender:group,
-             data = no_20[-13,])
-lmtest::bptest(model6)
-plot(model6)
-
-performance::check_model(model3, detrend = F)
-
-model7 <- lm(abundance_after ~ abundance_before + group,
-             data = no_20)#change here
-
-performance::check_model(model4, detrend = F)

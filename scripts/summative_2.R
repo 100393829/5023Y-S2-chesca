@@ -1,22 +1,21 @@
 #___packages----
-library(usethis)#used to talk to git
-library(gitcreds)#used to talk to git
-library(tidyverse)#load pacakge for data cleaning, manipulating and presenting
-library(GGally)
-library(janitor)#load a package for data cleaning
-library(ggplot2)#Used to make plots pretty
+library(usethis)#synchronising progress with github
+library(gitcreds)#synchronising progress with github
+library(tidyverse)#For importing, tidying, presenting and manipulating data
+library(GGally)# to manage transformed data
+library(janitor)# simple tools for cleaning and examining data 
 library(tidyr)#package for data cleaning
 library(stringr)#simplifies string manipulation 
-library(dplyr)#load mutate filter and other dplyr verbs, manipulation
-library(emmeans)
-library(performance)
-library(skimr)
-library(lmtest)
+library(dplyr)# Used for filtering, selecting columns, sorting data and adding and deleting columns 
+library(emmeans)#for linear model fitting and analysis
+library(performance)#for predictor evaluations
+library(skimr)#for summary statistics 
+library(lmtest)#for diagnostic linear model testing
+library(MASS)#for robust linear models and data cleaning
+library(ggplot2)#Used to make plots pretty
 library(car)#for qq plot for model visualisation
 library(see)#for qq plot for model visualisation
-library(scales)
-library(MASS)
-
+library(scales)#for data visualisation
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()

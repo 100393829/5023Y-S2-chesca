@@ -12,6 +12,8 @@ library(performance)#for predictor evaluations
 library(skimr)#for summary statistics 
 library(lmtest)#for diagnostic linear model testing
 library(MASS)#for robust linear models and data cleaning
+library(effectsize)
+library(boot)
 library(ggplot2)#Used to make plots pretty
 library(car)#for qq plot for model visualisation
 library(see)#for qq plot for model visualisation
@@ -93,6 +95,26 @@ difference <- probiotic%>%
 summarise(abundance_before= abundance[time==1],
           abundance_after=abundance[time==2])%>%
   mutate(difference = abundance_after - abundance_before)#adding a difference column to the dataset
+
+lgg <- probiotic%>%
+  group_by(subject, gender, group)%>%
+  filter(group=="LGG")%>%#grouping the df by abundance before the treatment
+  summarise(abundance_before= abundance[time==1],
+            abundance_after=abundance[time==2])%>%
+  mutate(difference = abundance_after - abundance_before)
+
+placebo <- probiotic%>%
+  group_by(subject, gender, group)%>%#grouping the df by abundance before the treatment
+  filter(group =="Placebo")%>%
+  summarise(abundance_before= abundance[time==1],
+            abundance_after=abundance[time==2])%>%
+  mutate(difference = abundance_after - abundance_before)
+
+abundacne_after <- probiotic%>%
+  group_by(subject, gender, group)%>%#grouping the df by abundance before the treatment
+  filter(time =="2")%>%
+  summarise(abundance_after=abundance[time==2])
+
 
 #_____homoscedascity----
 #difference %>%
@@ -261,10 +283,15 @@ ggsave("figures/bias_frequency_plot.jpeg",
 lsmodel04 <- lm(formula = difference ~ group + 
                   gender, 
                 data = difference[-14,])#removing 14 outlier
-
 summary(lsmodel04)
+anova(lsmodel04)
 plot(lsmodel04)
 performance::check_model(lsmodel04, detrend = F)
+confint(lsmodel04)
+broom::tidy(lsmodel04, conf.int=T, conf.level=0.95)
+#GGally::ggcoef_model(lsmodel04,
+#                     show_p_values=FALSE, 
+#                     conf.level=0.95)
 
 lsmodel05 <- lm(formula = difference ~ group + 
                   gender + 
@@ -272,6 +299,7 @@ lsmodel05 <- lm(formula = difference ~ group +
                 data = difference[-14,])#adding interaction
 
 summary(lsmodel05)
+broom::tidy(lsmodel05, conf.int=T, conf.level=0.95)
 drop1(lsmodel05, test = "F")
 anova(lsmodel05, lsmodel04)#therefore drop the interaction term
 
@@ -286,7 +314,7 @@ anova(lsmodel05, lsmodel04)#therefore drop the interaction term
 #drop1(lsmodel06, test = "F")
 #anova(lsmodel06, lsmodel04)
 
-#___testing my best model---
+#___testing my best model----
 
 drop1(lsmodel04, test = "F")
 
@@ -304,12 +332,20 @@ shapiro.test(residuals(lsmodel04))
 
 #_____paired_t_test----
 
-lsmodel_t_test <- lm(abundance ~ group + factor(subject), data = probiotic)
+lsmodel_t_test <- lm(abundance~ group + factor(subject), data = probiotic)
+
 summary(lsmodel_t_test)
 
-lsmodel_t_test%>% 
-  broom::tidy(., conf.int = T)%>%
-  slice(1:2)# just show first two rows
+broom::tidy(lsmodel_t_test, conf.int=T, conf.level=0.95)# just show first two rows
+
+GGally::ggcoef_model(lsmodel_t_test,
+                     show_p_values=FALSE, 
+                     conf.level=0.95)
+
+#lgg.t.test<-t.test(lgg$abundance_after, lgg$abundance_before)
+
+
+#placebo.t.test<-t.test(placebo$abundance_after, placebo$abundance_before)
 
 #____model_summary----
 difference2<-difference[-14,]

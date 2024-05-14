@@ -14,10 +14,14 @@ library(lmtest)#for diagnostic linear model testing
 library(MASS)#for robust linear models and data cleaning
 library(effectsize)
 library(boot)
+library(ggpubr)
 library(ggplot2)#Used to make plots pretty
 library(car)#for qq plot for model visualisation
 library(see)#for qq plot for model visualisation
 library(scales)#for data visualisation
+library(prismatic)#make plots pretty
+library(purrr)
+library(ggtext)
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
@@ -90,27 +94,34 @@ probiotic <- probiotic %>%
 
 #___separating_abundance_to_before_and_after_and_adding_a_difference_column---- 
 
+probiotic2<-probiotic[-41,]
+probiotic3<- probiotic2[-41,]
+
 difference <- probiotic%>%
   group_by(subject, gender, group)%>%#grouping the df by abundance before the treatment
 summarise(abundance_before= abundance[time==1],
           abundance_after=abundance[time==2])%>%
   mutate(difference = abundance_after - abundance_before)#adding a difference column to the dataset
 
-lgg <- probiotic%>%
+lgg <- probiotic3%>%
+  group_by(subject, gender, group)%>%
+  filter(group=="LGG")
+         
+lgg_diff <- probiotic3%>%
   group_by(subject, gender, group)%>%
   filter(group=="LGG")%>%#grouping the df by abundance before the treatment
   summarise(abundance_before= abundance[time==1],
             abundance_after=abundance[time==2])%>%
   mutate(difference = abundance_after - abundance_before)
 
-placebo <- probiotic%>%
+placebo_diff <- probiotic3%>%
   group_by(subject, gender, group)%>%#grouping the df by abundance before the treatment
   filter(group =="Placebo")%>%
   summarise(abundance_before= abundance[time==1],
             abundance_after=abundance[time==2])%>%
   mutate(difference = abundance_after - abundance_before)
 
-abundacne_after <- probiotic%>%
+abundance_after <- probiotic3%>%
   group_by(subject, gender, group)%>%#grouping the df by abundance before the treatment
   filter(time =="2")%>%
   summarise(abundance_after=abundance[time==2])
@@ -132,21 +143,23 @@ abundacne_after <- probiotic%>%
 
 #___plotting the sampling error----
 
-group_gender_summary <- difference %>% 
+group_gender_summary <- difference2 %>% 
   group_by(group, gender) %>% 
   summarise(n=n(),
             n_distinct=n_distinct(subject)) %>% 
   ungroup() %>% # needed to remove group calculations
   mutate(freq=n/sum(n))
 
-proportion <- difference%>% 
+proportion <- difference2%>% 
   ggplot(aes(x=group, fill=gender))+
   geom_bar(position=position_dodge2(preserve="single"))+ 
   #keeps bars to appropriate widths
   coord_flip()+
   #keeps bars to appropriate widths
   labs(x="Treatment",
-       y = "Number of observations")+
+       y = "Number of observations",
+       title= "Sampling Bias in Gender and Treatment", 
+       subtitle = "Stool samples of 21 subjects")+
   geom_text(data=group_gender_summary, # use the data from the summarise object
             aes(x=group,
                 y= n, # offset text to be slightly to the right of bar
@@ -154,13 +167,10 @@ proportion <- difference%>%
                 label=scales::percent(freq) # automatically add %
             ),
             position=position_dodge2(width=0.8))+ # set width of dodge
-  scale_fill_manual(values=c("cyan",
-                             "darkorange",
-                             "purple"
-  ))+
+  scale_fill_manual(values=pal)+
   coord_flip()+
-  theme_minimal()+
-  theme(legend.position="bottom") # put legend at the bottom of the graph
+  theme_grey(base_family = "Arial") #setting the theme as minimal and setting the font
+ 
 
 ggsave("figures/bias_frequency_plot.jpeg", 
              plot = proportion)
@@ -332,56 +342,120 @@ shapiro.test(residuals(lsmodel04))
 
 #_____paired_t_test----
 
-lsmodel_t_test <- lm(abundance~ group + factor(subject), data = probiotic)
-
+lsmodel_t_test <- lm(abundance~ group + factor(subject), data = probiotic3)
 summary(lsmodel_t_test)
-
 broom::tidy(lsmodel_t_test, conf.int=T, conf.level=0.95)# just show first two rows
 
-GGally::ggcoef_model(lsmodel_t_test,
-                     show_p_values=FALSE, 
-                     conf.level=0.95)
+#GGally::ggcoef_model(lsmodel_t_test,
+#                     show_p_values=FALSE, 
+#                     conf.level=0.95)
 
-#lgg.t.test<-t.test(lgg$abundance_after, lgg$abundance_before)
+lsmodel_t_test_lgg <- lm(abundance_after ~ abundance_before, data = lgg_diff)
+summary(lsmodel_t_test_lgg)
+broom::tidy(lsmodel_t_test_lgg, conf.int=T, conf.level=0.95)
 
 
-#placebo.t.test<-t.test(placebo$abundance_after, placebo$abundance_before)
+lsmodel_t_test_placebo <- lm(abundance_after ~ abundance_before, data = placebo_diff)
+summary(lsmodel_t_test_placebo)
+broom::tidy(lsmodel_t_test_placebo, conf.int=T, conf.level=0.95)
+
+lsmodel_t_test_l_gender <- lm(abundance~ gender + factor(subject), data = lgg)
+summary(lsmodel_t_test_l_gender)
+broom::tidy(lsmodel_t_test_l_gender, conf.int=T, conf.level=0.95)
 
 #____model_summary----
 difference2<-difference[-14,]
 
-difference2 %>%
-    summarise(min=min(difference),
-              max=max(difference))
-  
-model_sum <- emmeans::emmeans(lsmodel04, specs = ~group + gender,
+print(max(difference2$difference))
+
+print(min(difference2$difference))
+
+sum_pair_t <- emmeans::emmeans(lsmodel_t_test, specs = ~ group,
                               at =list(difference2 = c(-141: 194)))%>%
   as_tibble()
 
-difference2%>%
-  ggplot(aes(x = abundance_before,
-             y = abundance_after,
-             fill = group))+
-   geom_ribbon(data = model_sum,
-              aes(x = abundance_before,
-                  y = abundance_after,
-                 ymin = lower.CL,
-                   ymax = upper.CL,
-                  fill = group),
-              alpha = .2)+
-  geom_line(data = model_sum,
-           aes(x = jun_mean,
-               y = emmean,
-               colour = sex),
-            show.legend = FALSE)+
-  geom_point(shape = 21,
-           colour = "black",
-             show.legend = FALSE)+
-  scale_colour_manual(values = c("darkorange", "purple"))+
-  scale_fill_manual(values = c("darkorange", "purple"))+
-  labs(x = "Mean June Temperature (°C)",
-       y = "Forewing length (mm)",
-       fill = "Sex")+
-  theme_classic()+
-  theme(legend.position = "top")
+sum_04 <- emmeans::emmeans(lsmodel04, specs = ~group + gender,
+                              at =list(difference2 = c(-141: 194)))%>%
+  as_tibble()
 
+#___data_visualisation----
+pal<- c("steelblue1","seagreen3")
+
+levels(probiotic3$time) <- c('Before','After')
+
+t_test_box <- ggplot(data = probiotic3, aes(x = time, y = abundance)) +
+  geom_boxplot(aes(fill = time),
+             alpha = 0.7, 
+             width = 0.5, # change width of boxplot
+             show.legend = FALSE)+
+  geom_jitter(aes(colour = time),
+              width=0.1)+
+  theme(legend.position = "none")+
+  facet_wrap(~ group)+
+  labs(y = "R. gnavus abundance",#labelling x y axes and titling
+       x = "Time",
+       title= "Difference in Ruminococcus gnavus Abundance After Probiotic Treatment", 
+       subtitle = "Read count of R.gnavus from stool samples of 21 subjects")+
+  scale_fill_manual(
+    values = pal) +#instructing r what colours to used
+  theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
+  theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
+        axis.title.y = element_text(size = 12),#set y axis title size and moves the axis title away from the labels slightly
+        plot.title = element_text(face = "bold", lineheight = 0.8, size = 16),#sets size of title and makes it bold, sets lineheight
+        plot.subtitle = element_text(size = 12),#sets subtitle size
+        axis.ticks = element_line( color = "darkgrey"))+#add axis ticks to the x and y axes, specify length and change to the same colour as the text
+  theme(legend.position = "none")+ 
+  scale_color_manual(values = c("steelblue", "seagreen"), guide = "none")
+
+ggsave("figures/Group_only_box.jpeg", 
+       plot = t_test_box)
+
+#___gender_and_group_plot----
+
+element_textbox_highlight <- function(..., hi.labels = NULL, hi.fill = NULL,
+                                      hi.col = NULL, hi.box.col = NULL, hi.family = NULL) {
+  structure(
+    c(element_textbox(...),
+      list(hi.labels = hi.labels, hi.fill = hi.fill, hi.col = hi.col, hi.box.col = hi.box.col, hi.family = hi.family)
+    ),
+    class = c("element_textbox_highlight", "element_textbox", "element_text", "element")
+  )
+}
+
+element_grob.element_textbox_highlight <- function(element, label = "", ...) {
+  if (label %in% element$hi.labels) {
+    element$fill <- element$hi.fill %||% element$fill
+    element$colour <- element$hi.col %||% element$colour
+    element$box.colour <- element$hi.box.col %||% element$box.colour
+    element$family <- element$hi.family %||% element$family
+  }
+  NextMethod()
+} ## for %||%
+  
+
+ box_gender <- ggplot(data = probiotic3, aes(x = time, y = abundance)) +
+   scale_color_manual(values = c("steelblue", "seagreen"), guide = "none") +
+    geom_boxplot(aes(fill = time),
+                 alpha = 0.7, 
+                 width = 0.5, # change width of boxplot
+                 show.legend = FALSE)+
+   labs(y = "R. gnavus abundance",#labelling x y axes and titling
+        x = "Time",
+        title= "Difference in Ruminococcus gnavus Abundance After Probiotic Treatment Separated by Gender", 
+        subtitle = "Read count of R. gnavus from stool samples of 21 subjects")+
+   scale_fill_manual(
+     values = pal) +#instructing r what colours to used
+   theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
+   theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
+         axis.title.y = element_text(size = 12),#set y axis title size and moves the axis title away from the labels slightly
+         plot.title = element_text(face = "bold", lineheight = 0.8, size = 16),#sets size of title and makes it bold, sets lineheight
+         plot.subtitle = element_text(size = 12),#sets subtitle size
+         axis.ticks = element_line( color = "darkgrey"))+#add axis ticks to the x and y axes, specify length and change to the same colour as the text
+   theme(legend.position = "none")+ #no figure legend
+    geom_jitter(aes(colour = time),
+                width=0.1)+
+    facet_grid(gender~ group, scales = "free_x")+
+         theme(strip.text = element_textbox_highlight( color = "gray27",face = "bold", size = 12))
+
+ ggsave("figures/box_grid.jpeg", 
+        plot = box_gender)

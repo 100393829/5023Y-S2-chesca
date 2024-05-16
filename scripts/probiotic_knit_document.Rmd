@@ -81,7 +81,7 @@ source("/cloud/project/scripts/figure_3.R")
 
 ```
 
-*Figure 3:* Pathogenic *Ruminococcus gnavus* abundance in subject stool sampels increased to a greater extent in males relative to females after treatment with probiotic *Lactobacillus rhamnosus*, where average difference in read count was 252 (t~7~= 4.321, [95%CI: 114-390], p= 0.003). Circles are individual data points, colours indicate time stool sample was taken.
+**Figure 3:** Pathogenic *Ruminococcus gnavus* abundance in subject stool sampels increased to a greater extent in males relative to females after treatment with probiotic *Lactobacillus rhamnosus*, where average difference in read count was 252 (t~7~= 4.321, [95%CI: 114-390], p= 0.003). Circles are individual data points, colours indicate time stool sample was taken.
 
 ## **There is No Interaction Effect Between Gender and Treatment.**
 

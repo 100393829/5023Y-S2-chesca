@@ -1,4 +1,3 @@
-
 #___packages----
 library(usethis)#synchronising progress with github
 library(gitcreds)#synchronising progress with github
@@ -88,7 +87,7 @@ proportion <- difference2%>%
        y = "Number of Samples",
        title= "Sampling Bias in Gender and Treatment",#adding a title and subtitle
        subtitle = "Stool samples of 21 subjects",
-       fill = "Gender")+#capitalise legend title
+       fill = "Gender")+ #capitalise legend title
   geom_text(data=group_gender_summary, # use the data from the summarise object
             aes(x=group,
                 y= n, # offset text to be slightly to the right of bar
@@ -97,7 +96,7 @@ proportion <- difference2%>%
             ),
             position=position_dodge2(width=0.8))+ # set width of dodge
   scale_fill_manual(values=pal)+#change colours to specified palette
-  theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
+  theme_grey()+#setting the theme as minimal and setting the font
   theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
         plot.title = element_text(lineheight = 0.8, size = 12),#sets size of title and makes it bold, sets lineheight
         plot.subtitle = element_text(size = 12),#sets subtitle size

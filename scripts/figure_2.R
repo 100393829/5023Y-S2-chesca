@@ -81,13 +81,14 @@ group_gender_summary <- difference2 %>%
 pal<- c("steelblue1","seagreen3")#creating a colour palette
 
 proportion <- difference2%>% 
-  ggplot(aes(x=group, fill=gender))+#Specifying x axis and colouring bars by gender
+  ggplot(aes(x=group, fill= gender))+#Specifying x axis and colouring bars by gender
   geom_bar(position=position_dodge2(preserve="single"))+ #keeps bars to appropriate widths
   coord_flip()+#changing bar orientation
   labs(x="Treatment",#changing x and y axes labels
        y = "Number of Samples",
        title= "Sampling Bias in Gender and Treatment",#adding a title and subtitle
-       subtitle = "Stool samples of 21 subjects")+
+       subtitle = "Stool samples of 21 subjects",
+       fill = "Gender")+#capitalise legend title
   geom_text(data=group_gender_summary, # use the data from the summarise object
             aes(x=group,
                 y= n, # offset text to be slightly to the right of bar
@@ -96,10 +97,10 @@ proportion <- difference2%>%
             ),
             position=position_dodge2(width=0.8))+ # set width of dodge
   scale_fill_manual(values=pal)+#change colours to specified palette
-  theme_grey()+#setting the theme as minimal and setting the font
+  theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
   theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
         plot.title = element_text(lineheight = 0.8, size = 12),#sets size of title and makes it bold, sets lineheight
-        plot.subtitle = element_text(size = 11),#sets subtitle size
-        axis.ticks = element_line( color = "darkgrey"))
+        plot.subtitle = element_text(size = 12),#sets subtitle size
+        axis.ticks = element_line( color = "darkgrey"))#add axis ticks to the x and y axes, specify length and change to the same colour as the text
 
 print(proportion)

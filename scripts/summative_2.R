@@ -151,13 +151,14 @@ group_gender_summary <- difference2 %>%
 pal<- c("steelblue1","seagreen3")#creating a colour palette
 
 proportion <- difference2%>% 
-  ggplot(aes(x=group, fill=gender))+#Specifying x axis and colouring bars by gender
+  ggplot(aes(x=group, fill= gender))+#Specifying x axis and colouring bars by gender
   geom_bar(position=position_dodge2(preserve="single"))+ #keeps bars to appropriate widths
   coord_flip()+#changing bar orientation
   labs(x="Treatment",#changing x and y axes labels
        y = "Number of Samples",
        title= "Sampling Bias in Gender and Treatment",#adding a title and subtitle
-       subtitle = "Stool samples of 21 subjects")+
+       subtitle = "Stool samples of 21 subjects",
+       fill = "Gender")+
   geom_text(data=group_gender_summary, # use the data from the summarise object
             aes(x=group,
                 y= n, # offset text to be slightly to the right of bar
@@ -174,8 +175,11 @@ proportion <- difference2%>%
 
 print(proportion)
 
-#ggsave("/cloud/project/figures/bias_frequency_plot.jpeg", 
-#             plot = proportion)# saving the plot under a different name to the figures folder
+ggsave("/cloud/project/figures/bias_frequency_plot.jpeg", 
+             plot = proportion,
+       width = 17, # Set .pdf width
+       height = 9, # Set .pdf height
+       units = "cm") # Specify units for .pdf width and height# saving the plot under a different name to the figures folder
        
 #___monovariate_explorative)figures----
 

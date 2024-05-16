@@ -1,0 +1,93 @@
+---
+title: "**Efficacy of Probiotic *Lactobacillus rhamnosus* in Controlling Human Intestinal Abundance of *Pathogenic Ruminococcus* gnavus.**"
+author: '100393829'
+date: "2024-05-16"
+output: pdf_document
+bibliography: references.bib
+---
+
+```{r, include = FALSE, echo = FALSE, warning=FALSE, eval=TRUE, message=FALSE}
+library(usethis)
+library(gitcreds)
+library(tidyverse)
+library(GGally)
+library(janitor)
+library(tidyr)
+library(stringr)
+library(dplyr)
+library(emmeans)
+library(performance)
+library(skimr)
+library(lmtest)
+library(MASS)
+library(effectsize)
+library(ggpubr)
+library(ggplot2)
+library(car)
+library(see)
+library(scales)
+library(purrr)
+library(ggtext)
+library(gghighlight) 
+```
+
+```{r, include =TRUE, echo = FALSE, warning=FALSE, eval=TRUE,message=FALSE}
+
+ #____READ DATA----
+
+covid_data <- read_csv ("/cloud/project/data/probiotic.csv")
+
+```
+
+**Introduction:**
+
+The human microbiome is a delicate ecosystem influenced by a multitude of factors, ranging from mode of birth to dietary intake (Flint *et al.,* 2012). Dysbiosis of the gut can result in disease, including inflammatory bowel disease, irritable bowel syndrome and obesity (Gerritsen *et al.,* 2011). *Ruminococcus gnavus* is an anaerobic, gram-positive bacterium which colonises the human gut (Lefever *et al.,* 2019). Increased amounts of *R. gnavus* in the gut has been associated with inflammatory bowel disease (IBD) and Crohns disease (CD), peaking at 69% colonisation of the gut in IBD patients (Hall *et al.,* 2017). CD patients exhibit abdominal pain, diarrhoea and bloody stool, treatment mainly consists of symptom management rather than a cure (Henke *et al.,* 2019). However, it is unclear whether *R. gnavus* colonisation is a cause or effect of inflammation (Hall *et al.,* 2017). Probiotic bacteria can be taken orally in food products, which are well-characterised live microbes to protect against GI disease and boost the immune system (Kumar *et al.,* 2019). Probiotic strains are preferentially of human origin, generally regarded as safe, and survive gastrointestinal conditions to colonise the gut (Rönkä *et al.,* 2003). Lacatobacillus rhamnosus survives well under low pH conditions, can tolerate bile acids (Verdenelli *et al.,* 2009) and expresses high values of in vitro adhesion to intestinal epithelial cell lines, which makes it a good probiotic (Tuomola and Salminen *et al.,* 1998). *L. rhamnosus* performs well in probiotic products where one study found that after consumption; Lactobacillus became a more predominant strain and balanced the microbiome (Tannock *et al.,* 2000). Strains of *L. rhamnosus* were recoverable from stool samples after feeding trials further showing it’s ability to colonise the gut (Verdenelli *et al.,* 2009). This analysis aims to quantify the ability of *L. rhamnosus* to counteract increase in abundance of *R. gnavus*, and identify if subject gender affects probiotic treatment.
+
+**Analysis:**
+
+Data was cleaned and manipulated using “tidyverse”, “GGally”, “janitor”, “tidyr”, “stringr”, and “dplyr”. To assess mean change in abundance of *R. gnavus*, between two treatments, placebo and LGG I computed a paired t-test, from an ordinary least squares (OLS) linear model. I completed a student’s t-test from an OLS linear model, comparing *R. gnavus* mean abundance after LGG treatment, and *R. gnavus* mean abundance before LGG treatment. Similarly, I used another student’s t-test from an OLS linear model to compare mean R. ganvus abundances before and after placebo treatment. To analyse difference in *R. gnavus* after LGG treatment I used an OLS linear model in a factorial design with treatment and gender as categorical predictors. The best fitting model to explain *R. gnavus* abundance difference excluded the interaction term between treatment and gender. Models were fitted and checked against residuals using “emmeans”, “performance”, “skimr”, “lmtest”, “MASS”, and “effectsize”, creating robust, reliable, linear models. Data did not require transformation but; data from subject 21 was excluded as an outlier as it exerted too much leverage on models. “car”, “see”, “scales”, “purr”, and “ggtext” were used for data visualisation. All analysis was completed using R 3.0.1.
+
+**Results and Discussion**
+
+Probiotic Treatment Decreases Abundance of *R. gnavus*
+
+I hypothesised a lower abundance of *R. gnavus* in LGG treated pairs of stool samples. A paired t-test was computed from an OLS linear model to determine if the mean change in abundances of *R. gnavus* were different between two treatments, placebo and *L. rhamnosus* probiotic treatment (LGG). The difference in abundance between LGG and Placebo treatments on stool samples when we hold pairs constant was statistically significant at 190.5 (t21= 2.961, [CI: 56.7, 324], p=0.007). I then hypothesised there was no change in abundance of *R. gnavus* after the LGG treatment. I completed a student’s t-test based on an ordinary least squares linear model, looking at mean abundance of *R. gnavus* after LGG treatment, compared to abundance of *R. gnavus* before treatment as the independent variable. LGG abundance increases marginally after treatment with a statistically significant difference of 8.05 (t5= 3.100, [CI: 0.188, 2.01], p=0.027) (Figure 1). As mean change in *R. gnavus* was different between treatment groups I suspected placebo increase in abundance to be much greater. To test placebo treatment, I used another student’s t-test, based on an OLS linear model with *R. gnavus* abundance after placebo compared to abundance before treatment. There is a much larger difference after treatment in the placebo group, at 89.09 (t12=4.982, [CI: 0.469, 1.20], p= 0.0003) (Figure 1), with greater significance.
+
+```{r, include=TRUE, echo =FALSE, warning=FALSE, eval=TRUE, message=FALSE}
+
+source("/cloud/project/scripts/figure_1.R")
+
+```
+
+**Figure 1:** Pathogenic *Ruminococcus gnavus* abundance in subject stool samples increased to a lesser extent after treatment with probiotic *Lactobacillus rhamnosus*, where difference in average increase in read count was 190.5 (t21= 2.961, [CI: 56.7, 324], p=0.007). Circles are individual data points, colours indicate time stool sample was taken, and boxplot whiskers represent range.
+
+It is likely the probiotic effect of *L. rhamnosus* is lessening the proliferation of the pathogenic bacteria, while in the placebo group the pathogen further colonises the gut unhindered. Although the abundance of *R. gnavus* did not decrease after LGG treatment itself, the lesser increase in abundance of *R. gnavus* shows the *L. rhamnosus* treatment is having a significant effect relative to the placebo. *L. rhamnosus* is known to decrease levels of pathogens like shigella and H.pylori (Tannock *et al.,* 2000) and can significantly decrease E. coli count (Li *et al.,* 2020). *L. rhamnosus* paired with Bifidobacterium longum is has been shown to decrease *R. gnavus* abundance (Toscano *et al.,* 2017), although my analysis doesn’t show a decrease in abundance of pathogenic *R. gnavus*, it is clear that *R. gnavus* colonisation progresses to a lesser extent when treated with LGG compared to the control group. A trend may be clearer with a greater sample size as only 6 patients were treated with LGG (Figure 2).
+
+```{r, include=TRUE, echo =FALSE, warning=FALSE, eval=TRUE, message=FALSE}
+
+source("/cloud/project/scripts/figure_2.R")
+
+```
+**Figure 2:** Number of participants sampled by gender and treatment used. Percentages show group proportion of entire sample. Where LGG males were 9.5% of the sample.
+
+Impact of Gender on *L. rhamnosus* Treatment.
+
+I hypothesised that males would respond less well to treatment with *L. rhamnosus* than females. To test this, I used an OLS linear model to analyse difference in *R. gnavus* after LGG treatment, in a factorial design where treatment and gender are categorical predictors. The model shows that Males have 252 greater average difference in abundance of *R. gnavus* in comparison to females after LGG treatment (Figure 3) (t7= 4.321, [95%CI: 114-390], p= 0.003). Model residuals were checked against the assumptions of a standard linear model. However, only 2 males and 4 females were treated with *L. rhamnosus*, this sampling bias could make outlier identification more difficult (Figure 2). Zhang and colleagues, (2021) have found a female bias in the abundance of *R. gnavus*. If females have a higher starting threshold, *R. gnavus* abundance may be able to increase more before carrying capacity is reached.
+
+```{r, include=TRUE, echo =FALSE, warning=FALSE, eval=TRUE, message=FALSE}
+
+source("/cloud/project/scripts/figure_3.R")
+
+```
+*Figure 3:* Pathogenic *Ruminococcus gnavus* abundance in subject stool sampels increased to a greater extent in males relative to females after treatment with probiotic *Lactobacillus rhamnosus*, where average difference in read count was 252 (t7= 4.321, [95%CI: 114-390], p= 0.003). Circles are individual data points, colours indicate time stool sample was taken.
+
+
+There is No Interaction Effect Between Gender and Treatment.
+
+I tested for an interaction effect between treatment and gender on abundance of *R. gnavus*. To do this I fitted a linear model, estimated using ordinary least squares to predict difference in abundance of *R. gnavus* after treatment with *L. rhamnosus* in a factorial design with treatment and gender as categorical predictors, with an interaction effect of treatment and gender. The best fit of this model did not include an interaction effect as it was not significant (ANOVA F1,17 = 0.6554, P = 0.4294). Combining treatments (-62.65 [95% CI: -226 - 101]) produced no difference in abundance of *R. gnavus* than expected from the additives individually where treatment shows a difference of 15.4 [95% CI: -71.9 - 103], and gender has a difference in abundance of 145.7 [95% CI:12.4-279].
+
+**Conclusion:**
+
+High levels of *R. gnavus* in the gut has been associated with IBD and CD (Hall *et al.,* 2017). *L. rhamnosus* performs well as a probiotic treatment to counteract dysbiosis and reinstate balance in the gut (Tannock *et al.,* 2000). This analysis aimed to quantify the ability *L. rhamnosus* has, to counteract increase in abundance of *R. gnavus*. I found that after LGG treatment *R. gnavus* abundance increased on average 8.05 (t5= 3.100, [CI: 0.188, 2.01], p=0.027). However, in placebo groups *R. gnavus* abundance increased much more and with greater significance, at 89.09 (t12=4.982, [CI: 0.469, 1.20], p= 0.0003). Subsequently, placebo increase in abundance was on average 190.5 higher than LGG treatment increase (t21= 2.961, [CI: 56.7, 324], p=0.007). Therefore, LGG seems to decrease the ability of *R. gnavus* to colonise the gut, it is unclear if this is by actively depreciating *R. gnavus* levels, or by being better equipped to colonise the gut environment thereby reducing carrying capacity for *R. gnavus*. Toscano and colleagues (2017) showed *L. rhamnosus* has been shown to decrease overall abundance of pathogenic *R. gnavus*. This study also aimed to identify if subject gender affects probiotic treatment. I found that Males have 252 greater average difference in abundance of *R. gnavus* in comparison to females after *L. rhamnosus* treatment (Figure 3c-quad) (t7= 4.321, [95%CI: 114-390], p= 0.003). Suggesting that LGG treatment on males was less efficacious than females. However, this could be the result of sampling bias due to a very small sample of men treated with LGG (Figure 2) as one study of the effect of 6 probiotics, including *L. rhamnosus*, on peripheral blood cells found gender didn’t contribute to differences in response (Ho *et al.,* 2017). Another study found a differential effect of probiotics in rats where females exhibited reduced levels of inflammatory cytokines like IL6, whereas males exhibited much higher levels of inflammatory IL17, which supports the theory males respond less well to probiotic treatment [@lee2017probiotics] (Lee *et al.,* 2017). Further research should be directed towards the differential effect of gender on probiotic useage. Age could also have a role in response to probiotic due to the differing composition of the microbiome based on environmental factors (Ho *et al.,* 2017). An interesting comparison could focus on how *L. rhamnosus* abundance changes with respect to *R. gnavus* abundance and if probiotic is colonising the gut to restore symbiosis. Studies could also include a standardised scoring system to assess the ability of *L. rhamnosus* treatment to alleviate symptoms of *R. gnavus* infection, like diarrhoea and abdominal pain (Henke *et al.,* 2019).
+
+**References**

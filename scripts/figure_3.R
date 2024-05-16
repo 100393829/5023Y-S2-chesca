@@ -112,8 +112,7 @@ box_gender <- ggplot(data = probiotic3, aes(x = time, y = abundance)) +#setting 
   scale_fill_manual( values = pal) +#instructing r what colours to used
   theme_grey()+#setting the theme as minimal and setting the font
   theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
-        axis.title.y = element_text(size = 12),#set y axis title size and moves the axis title away from the labels slightly
-        plot.title = element_text(lineheight = 0.8, size = 16),#sets size of title and makes it bold, sets lineheight
+        plot.title = element_text(lineheight = 0.8, size = 12),#sets size of title and makes it bold, sets lineheight
         plot.subtitle = element_text(size = 12),#sets subtitle size
         axis.ticks = element_line( color = "darkgrey"))+#add axis ticks to the x and y axes, specify length and change to the same colour as the text
   geom_jitter(aes(colour = time),#colouring the points by time

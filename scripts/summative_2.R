@@ -21,6 +21,7 @@ library(scales)#for data visualisation
 library(purrr)#for working with functions and vectors
 library(ggtext)#for customising gg plot text
 library(gghighlight)#highlighting specified data by creating a new data frame for each layer 
+
 #___talking_to_git----
 #usethis::use_git_config(user.name = "100393829", user.email = "jug22tpu@uea.ac.uk")#entering username and password
 #gitcreds::gitcreds_set()
@@ -167,8 +168,7 @@ proportion <- difference2%>%
   scale_fill_manual(values=pal)+#change colours to specified palette
   theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
   theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
-        axis.title.y = element_text(size = 12),#set y axis title size and moves the axis title away from the labels slightly
-        plot.title = element_text(lineheight = 0.8, size = 16),#sets size of title and makes it bold, sets lineheight
+        plot.title = element_text(lineheight = 0.8, size = 12),#sets size of title and makes it bold, sets lineheight
         plot.subtitle = element_text(size = 12),#sets subtitle size
         axis.ticks = element_line( color = "darkgrey"))#add axis ticks to the x and y axes, specify length and change to the same colour as the text
 
@@ -395,8 +395,7 @@ t_test_box <- ggplot(data = probiotic3, aes(x = time, y = abundance)) +#setting 
   scale_fill_manual(values = pal) +#instructing r what colours to used
   theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
   theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
-        axis.title.y = element_text(size = 12),#set y axis title size and moves the axis title away from the labels slightly
-        plot.title = element_text(lineheight = 0.8, size = 16),#sets size of title and makes it bold, sets lineheight
+        plot.title = element_text(lineheight = 0.8, size = 12),#sets size of title and makes it bold, sets lineheight
         plot.subtitle = element_text(size = 12),#sets subtitle size
         axis.ticks = element_line( color = "darkgrey"))+#add axis ticks to the x and y axes, specify length and change to the same colour as the text
   scale_color_manual(values = c("steelblue", "seagreen"), guide = "none") +# setting the jitter to darker colours
@@ -424,8 +423,7 @@ box_gender_subtitle <- expression(paste("Read count of ", italic("R. ganvus"), "
    scale_fill_manual( values = pal) +#instructing r what colours to used
    theme_grey(base_family = "Arial")+#setting the theme as minimal and setting the font
    theme(axis.text = element_text(color = "darkgrey", size = 10),# Changes the size of text on both axis 
-         axis.title.y = element_text(size = 12),#set y axis title size and moves the axis title away from the labels slightly
-         plot.title = element_text(lineheight = 0.8, size = 16),#sets size of title and makes it bold, sets lineheight
+         plot.title = element_text(lineheight = 0.8, size = 12),#sets size of title and makes it bold, sets lineheight
          plot.subtitle = element_text(size = 12),#sets subtitle size
          axis.ticks = element_line( color = "darkgrey"))+#add axis ticks to the x and y axes, specify length and change to the same colour as the text
    geom_jitter(aes(colour = time),#colouring the points by time
